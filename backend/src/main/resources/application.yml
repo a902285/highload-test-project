@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sn?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: passw0rd
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+logging.level.liquibase: INFO

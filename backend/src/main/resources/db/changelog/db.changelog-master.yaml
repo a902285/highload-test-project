@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: lysov
+      changes:
+        - createTable:
+            tableName: account
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(50)
+              - column:
+                  name: last_name
+                  type: varchar(50)
+              - column:
+                  name: age
+                  type: TINYINT(3) UNSIGNED
+              - column:
+                  name: gender
+                  type: TINYINT(1)
+              - column:
+                  name: city
+                  type: varchar(50)
+              - column:
+                  name: description
+                  type: varchar(512)
+  - changeSet:
+      id: 2
+      author: lysov
+      comment: "Create admin user"
+      changes:
+        - insert:
+            tableName: account
+            columns:
+              - column:
+                  name: username
+                  value: "admin"
+              - column:
+                  name: password
+                  value: "admin"
+      rollback:
+        - delete:
+            tableName: account
+            where: username in ('admin')
