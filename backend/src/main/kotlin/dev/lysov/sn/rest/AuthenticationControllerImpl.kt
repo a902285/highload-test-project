@@ -4,6 +4,8 @@ import dev.lysov.sn.dto.AccountDto
 import dev.lysov.sn.dto.LoginRequestDto
 import dev.lysov.sn.dto.LoginResponseDto
 import dev.lysov.sn.dto.SignupRequestDto
+import dev.lysov.sn.exception.BadRequestException
+import dev.lysov.sn.security.UserPrincipal
 import dev.lysov.sn.service.AccountService
 import dev.lysov.sn.util.JwtTokenProvider
 import org.springframework.http.ResponseEntity
@@ -11,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.util.StringUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,12 +35,20 @@ class AuthenticationControllerImpl(
                 loginRequest.username, loginRequest.password
         ))
         SecurityContextHolder.getContext().authentication = authentication
+        val userPrincipal = authentication.principal as UserPrincipal
         val jwt = jwtTokenProvider.generateToken(authentication)
-        return ResponseEntity.ok(LoginResponseDto(jwt))
+        return ResponseEntity.ok(LoginResponseDto(
+                token = jwt,
+                userId = userPrincipal.id
+        ))
     }
 
     @PostMapping("/signup")
     override fun signup(@RequestBody account: SignupRequestDto): ResponseEntity<AccountDto> {
+
+        if (!StringUtils.hasText(account.password)) {
+            throw BadRequestException("password is empty")
+        }
 
         account.password = passwordEncoder.encode(account.password)
         val result = accountService.create(account)

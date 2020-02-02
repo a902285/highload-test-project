@@ -60,7 +60,13 @@ class WebSecurityConfig(
                         "/**/*.jpg",
                         "/**/*.html",
                         "/**/*.css",
-                        "/**/*.js")
+                        "/**/*.js",
+                        "/**/*.json")
+                .permitAll()
+                .antMatchers("/signup",
+                        "/home/**",
+                        "/view-account/**",
+                        "/account")
                 .permitAll()
                 .antMatchers("/api/v1/auth/**")
                 .permitAll()

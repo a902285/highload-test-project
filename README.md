@@ -39,8 +39,11 @@ https://a902285-sn.herokuapp.com/
 
 #### Стек
 - kotlin
+- spring web / security / jdbc
+- jwt
 - react js
 - mysql
+- liquibase
 
 #### Локальный запуск:
 

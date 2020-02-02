@@ -55,7 +55,25 @@ databaseChangeLog:
                   value: "admin"
               - column:
                   name: password
-                  value: "admin"
+                  value: "$2a$10$WW.nYwOYvU5CPg1HTbG5wOiHfXjImt7ZSPDFTs/z9UEnDHJf1zNbe"
+              - column:
+                  name: first_name
+                  value: "Админ"
+              - column:
+                  name: last_name
+                  value: "Админов"
+              - column:
+                  name: age
+                  value: 25
+              - column:
+                  name: gender
+                  value: 1
+              - column:
+                  name: city
+                  value: "Москва"
+              - column:
+                  name: description
+                  value: "ИТ"
       rollback:
         - delete:
             tableName: account
