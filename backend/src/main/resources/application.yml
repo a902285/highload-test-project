@@ -12,3 +12,7 @@ spring:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
 
 logging.level.liquibase: INFO
+
+sn:
+  jwtSecret: $%^#!$WETEHFH^%&@#$#$EWFBH%^*^&*123hgvh
+  jwtExpirationInMs: 600000
