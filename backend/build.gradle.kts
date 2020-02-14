@@ -31,6 +31,7 @@ dependencies {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("com.github.javafaker:javafaker:1.0.2")
 }
 
 tasks.withType<Test> {

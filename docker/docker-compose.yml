@@ -5,9 +5,10 @@ services:
 
   db:
     image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: passw0rd
+      MYSQL_DATABASE: sn
     ports:
       - 3306:3306
