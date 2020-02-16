@@ -12,8 +12,18 @@ class AccountRepositoryImpl(
         val jdbcTemplate: JdbcTemplate
 ) : AccountRepository {
 
-    override fun findAll() =
-            jdbcTemplate.query("select * from account", rowMapper())
+    override fun findAll(limit: Int, offset: Int, name: String?) : List<Account> {
+        val params = mutableListOf<Any>()
+        val where = name?.let {
+            params.addAll(listOf("$it%", "$it%"))
+            "where first_name like ? or last_name like ?"
+        } ?: ""
+        params.addAll(listOf(limit, offset))
+
+        return jdbcTemplate.query("select * from account" +
+                " $where" +
+                " order by id limit ? offset ?", params.toTypedArray(), rowMapper())
+    }
 
     override fun findOne(id: Long) =
             jdbcTemplate.queryForObject("select * from account where id = ?", arrayOf(id), rowMapper())

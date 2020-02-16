@@ -32,7 +32,7 @@ class JwtAuthenticationFilter(
                 SecurityContextHolder.getContext().authentication = authentication
             }
         } catch (e: Exception) {
-            logger.error("Not authentication: ", e)
+            log.error("Not authentication: ", e)
         }
 
         filterChain.doFilter(request, response)

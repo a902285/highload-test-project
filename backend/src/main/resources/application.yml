@@ -1,18 +1,41 @@
+# https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-application-properties.html#server-properties
+server:
+  tomcat:
+    # Максимально кол-во рабочих потоков
+    max-threads: 200
+    # Максимальное кол-во соединений, которые сервер принимает и обрабатывает
+    max-connections: 10000
+    # Максимальная длина очереди для входящих запросов
+    accept-count: 100
+    # Время ожидания обработки запроса
+    connection-timeout: 20000
+
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/sn?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
     username: root
     password: passw0rd
+    # см. https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby
     hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
+      # время ожидания подключения из пула, мс
+      connectionTimeout: 30000
+      # Врем бездействия соединения в пуле, после которого оно удалится
+      idleTimeout: 600000
+      # Максимальное время соединения в пуле
+      maxLifetime: 1800000
+      # Минимальное кол-во незанятых соединений
+      minimumIdle: 2
+      # Максимальное число соединений в пуле
+      maximumPoolSize: 100
 
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
 
-logging.level.liquibase: INFO
+logging:
+  level:
+    liquibase: INFO
 
 sn:
   jwtSecret: $%^#!$WETEHFH^%&@#$#$EWFBH%^*^&*123hgvh
-  jwtExpirationInMs: 600000
+  jwtExpirationInMs: 3600000
