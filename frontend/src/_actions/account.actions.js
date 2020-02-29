@@ -15,7 +15,7 @@ function getAccount() {
         let apiEndpoint = 'account';
         userService.get(apiEndpoint)
             .then((response) => {
-                dispatch(changeAccountsList(response.data));
+                dispatch(changeAccountsList(response.data.data));
             }).catch((err) => {
             console.log(err);
         })

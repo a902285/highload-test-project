@@ -1,10 +1,12 @@
 # Результаты нагрузочного тестирования
 Таблица account содержит 1 000 000 записей.
 
-Для тестирования используется утилита wrk2 (https://github.com/giltene/wrk2). 
-Запросы при тестировании формируются динамически, в соответствии с файлом scripts/script.lua
+Для тестирования используются утилиты wrk2 (https://github.com/giltene/wrk2) и yandex-tank + phantom (https://yandextank.readthedocs.io/en/latest/tutorial.html). 
+Запросы при тестировании формируются динамически, в соответствии с файлами wrk/script.lua и yandex-tank/load.yml
 
-Для построения графиков используется: http://hdrhistogram.github.io/HdrHistogram/plotFiles.html
+Для построения графиков используется: 
+- по wrk: http://hdrhistogram.github.io/HdrHistogram/plotFiles.html
+- по yandex-tank: выгрузка отчета на сайт https://overload.yandex.net/
 
 <details>
   <summary>Железо и настройки</summary>
@@ -660,6 +662,30 @@
   ```
 </details>
 
+## Генерация данных
+
+Для генерации тестовых данных используется утилита javafaker
+
+```
+1. Удалить в файле ./backend/src/test/kotlin/dev/lysov/sn/FakerTest.kt аннотацию @Disabled
+2. Выполнить команду из корня проекта: ./gradlew test --tests "*FakerTest"
+3. В результате будет сгенерирован файл insert-account.txt с 1000000 записей
+4. Запустить докер (см. корневой README)
+5. Скопировать файл insert-account.txt в запущенный контейнер:
+docker cp insert-account.txt docker_db_1:/var/tmp
+6. Подключиться к mysql в докере (имя контейнера = docker_db_1)
+docker exec -it docker_db_1 mysql -uroot -ppassw0rd sn
+7. Выполнить вставку данных из файла:
+LOAD DATA INFILE '/var/tmp/insert-account.txt'
+    INTO TABLE account
+    FIELDS TERMINATED BY ';'
+    (username, password, first_name, last_name, age, gender, city, description)
+    SET ID = NULL;
+
+В результате:
+Query OK, 1000000 rows affected (17.98 sec)
+```
+
 ## Тестирование функционала поиска анкет по префиксу имени и фамилии (таблица account без индексов на полях first_name и last_name)
 
 #### Индексы
@@ -1086,6 +1112,13 @@ Max throughput = 144.58 rps
   ```
 </details> 
 
+#### yandex-tank
+
+- line(1, 1000, 60s), threads 10 - https://clck.ru/MKNeE
+- line(1, 1000, 30s), threads 1000 - https://clck.ru/MKNgT
+- const(200, 30s), threads 1000 - https://clck.ru/MKNhB
+
+
 ## Тестирование функционала поиска анкет по префиксу имени и фамилии (в таблице account добавлены BTREE индексы на поля first_name и last_name)
 
 #### Индексы
@@ -1382,6 +1415,10 @@ Max throughput = 4.99 rps
   Transfer/sec:     75.01KB
   ```
 </details> 
+
+#### yandex-tank
+
+- line(1, 1000, 30s), threads 1000 - https://clck.ru/MKNi4
 
 ## Итоги:
 - Для полей first_name и last_name добавлен BTREE индекс для возможности поиска по префиксу.

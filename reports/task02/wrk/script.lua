@@ -1,5 +1,5 @@
 request = function()
-  wrk.headers["Authorization"] = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTgxODc5MDMyLCJleHAiOjE1ODE4ODI2MzJ9.yXndEiDVil2CY4Jeg3vKAEaYuK0QvjEm-9HCWeKUcDpLUnCWpN-tZiOycitJnFe57Dbu6S2PxOUQY1ROqhmW5Q"
+  wrk.headers["Authorization"] = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTgyOTIzOTYxLCJleHAiOjE1ODI5Mjc1NjF9.ktP9uL0sAe2Ji04_UmeBC6PheDb7PkaGL7_OkhvleEktVzonFiHdPZW-cmOQB6dxNFV8n-Mz2rvuH2-sGylSnw"
   names = { "Андр",
             "Степ",
             "Вади",

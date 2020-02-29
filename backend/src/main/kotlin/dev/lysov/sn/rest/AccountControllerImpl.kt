@@ -8,6 +8,7 @@ import dev.lysov.sn.service.AccountService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -20,18 +21,20 @@ class AccountControllerImpl(
     }
 
     @GetMapping
-    override fun findAll(search: AccountSearchDto): PageDto<AccountDto> {
+    override fun findAll(search: AccountSearchDto): Mono<PageDto<AccountDto>> {
         log.info("findAll() - start: search = {}", search)
-        val result = accountService.findAll(search)
-        log.info("findAll() - end: result = {}", result.data.size)
-        return result
+        return accountService.findAll(search)
+                .map {
+                    log.info("findAll() - end: result = {}", it.data.size)
+                    it
+                }
     }
 
     @GetMapping("/{id}")
     override fun findOne(@PathVariable("id") id: Long) = accountService.findOne(id)
 
     @PutMapping("/{id}")
-    override fun update(@PathVariable("id") id: Long, @RequestBody account: AccountDto): AccountDto {
+    override fun update(@PathVariable("id") id: Long, @RequestBody account: AccountDto): Mono<AccountDto> {
         if (id != account.id) {
             throw BadRequestException("id = $id is incorrect parameter")
         }

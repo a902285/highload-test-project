@@ -1,58 +1,47 @@
 package dev.lysov.sn.security
 
-import dev.lysov.sn.util.JwtTokenProvider
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.config.BeanIds
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
-import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.core.io.ResourceLoader
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
+import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.web.reactive.function.server.router
+import reactor.core.publisher.Mono
 
-@Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(
-        securedEnabled = true,
-        jsr250Enabled = true,
-        prePostEnabled = true
-)
+
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 class WebSecurityConfig(
-        val userDetailsService: CustomUserDetailsService,
-        val unauthorizedHandler: JwtAuthenticationEntryPoint,
-        val jwtTokenProvider: JwtTokenProvider
-) : WebSecurityConfigurerAdapter() {
+        private val authenticationManager: AuthenticationManager,
+        private val securityContextRepository: SecurityContextRepository,
+        private val resourceLoader: ResourceLoader
+) {
 
     @Bean
-    fun jwtAuthenticationFilter() = JwtAuthenticationFilter(userDetailsService, jwtTokenProvider)
-
-    override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder())
-    }
-
-    @Bean(BeanIds.AUTHENTICATION_MANAGER)
-    override fun authenticationManagerBean(): AuthenticationManager {
-        return super.authenticationManagerBean()
-    }
-
-    override fun configure(http: HttpSecurity) {
-        http.cors()
-                .and()
-                .csrf()
-                .disable()
+    fun securitygWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
+        return http
                 .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedHandler)
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers("/",
+                .authenticationEntryPoint { swe, _ ->
+                    Mono.fromRunnable {
+                        swe.response.statusCode = HttpStatus.UNAUTHORIZED
+                    }
+                }.accessDeniedHandler { swe, _ ->
+                    Mono.fromRunnable {
+                        swe.response.statusCode = HttpStatus.FORBIDDEN;
+                    }
+                }.and()
+                .csrf().disable()
+                .formLogin().disable()
+                .httpBasic().disable()
+                .authenticationManager(authenticationManager)
+                .securityContextRepository(securityContextRepository)
+                .authorizeExchange()
+                .pathMatchers(HttpMethod.OPTIONS).permitAll()
+                .pathMatchers("/",
                         "/favicon.ico",
                         "/**/*.png",
                         "/**/*.gif",
@@ -61,19 +50,27 @@ class WebSecurityConfig(
                         "/**/*.html",
                         "/**/*.css",
                         "/**/*.js",
-                        "/**/*.json")
+                        "/**/*.json",
+                        "/static/**")
                 .permitAll()
-                .antMatchers("/signup",
+                .pathMatchers("/signup",
                         "/home/**",
                         "/view-account/**",
                         "/account")
                 .permitAll()
-                .antMatchers("/api/v1/auth/**")
+                .pathMatchers("/api/v1/auth/**")
                 .permitAll()
-                .anyRequest()
-                .authenticated()
+                .anyExchange().authenticated()
+                .and().build()
+    }
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+    @Bean
+    //TODO: review when https://github.com/spring-projects/spring-boot/issues/9785
+    fun indexRoutes() = router {
+        GET("/") {
+            Mono.justOrEmpty(resourceLoader.getResource("classpath:/static/index.html"))
+                    .flatMap { ok().bodyValue(it) }
+        }
     }
 
     @Bean

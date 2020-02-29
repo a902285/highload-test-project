@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -21,8 +20,7 @@ class JwtTokenProvider(
         private val log = LoggerFactory.getLogger(JwtTokenProvider::class.java)
     }
 
-    fun generateToken(authentication: Authentication): String {
-        val userPrincipal = authentication.principal as UserPrincipal
+    fun generateToken(userPrincipal: UserPrincipal): String {
         val now = Date()
         val expiryDate = Date(now.time + jwtExpirationInMs)
 

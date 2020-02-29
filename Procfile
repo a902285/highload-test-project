@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Dspring.profiles.active=prod -Dspring.datasource.url="jdbc:mysql://us-cdbr-iron-east-04.cleardb.net/heroku_b883fd587233494?reconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC" -Dserver.port=$PORT -jar backend/build/libs/backend-0.0.1-SNAPSHOT.jar
+web: java $JAVA_OPTS -Dspring.profiles.active=prod -Dspring.datasource.url="jdbc:mysql://us-cdbr-iron-east-04.cleardb.net/heroku_9575ea589eaaa4a?reconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC" -Dserver.port=$PORT -jar backend/build/libs/backend-0.0.1-SNAPSHOT.jar

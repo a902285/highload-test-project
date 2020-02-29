@@ -1,15 +1,4 @@
 # https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-application-properties.html#server-properties
-server:
-  tomcat:
-    # Максимально кол-во рабочих потоков
-    max-threads: 200
-    # Максимальное кол-во соединений, которые сервер принимает и обрабатывает
-    max-connections: 10000
-    # Максимальная длина очереди для входящих запросов
-    accept-count: 100
-    # Время ожидания обработки запроса
-    connection-timeout: 20000
-
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -27,10 +16,14 @@ spring:
       # Минимальное кол-во незанятых соединений
       minimumIdle: 2
       # Максимальное число соединений в пуле
-      maximumPoolSize: 100
+      maximumPoolSize: 150
 
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+  resources:
+    cache:
+      period: 126230400
 
 logging:
   level:

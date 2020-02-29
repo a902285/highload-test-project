@@ -61,7 +61,7 @@ https://a902285-sn.herokuapp.com/
 
 #### Стек
 - kotlin
-- spring web / security / jdbc
+- spring reactive web / security / jdbc
 - jwt
 - react js
 - mysql
@@ -85,26 +85,16 @@ java -jar ./backend/build/libs/backend-0.0.1-SNAPSHOT.jar
 ```
 Перейти по ссылке: http://localhost:8080/
 
-##### Генерация данных
-
-Для генерации тестовых данных используется утилита javafaker
+##### Деплой в heroku
 
 ```
-1. Удалить в файле ./backend/src/test/kotlin/dev/lysov/sn/FakerTest.kt аннотацию @Disabled
-2. Выполнить команду из корня проекта: ./gradlew test --tests "*FakerTest"
-3. В результате будет сгенерирован файл insert-account.txt с 1000000 записей
-4. Запустить докер (см. п. выше)
-5. Скопировать файл insert-account.txt в запущенный контейнер:
-docker cp insert-account.txt docker_db_1:/var/tmp
-6. Подключиться к mysql в докере (имя контейнера = docker_db_1)
-docker exec -it docker_db_1 mysql -uroot -ppassw0rd sn
-7. Выполнить вставку данных из файла:
-LOAD DATA INFILE '/var/tmp/insert-account.txt'
-    INTO TABLE account
-    FIELDS TERMINATED BY ';'
-    (username, password, first_name, last_name, age, gender, city, description)
-    SET ID = NULL;
+$ heroku create a902285-sn
+$ heroku addons:create cleardb:ignite
+$ heroku run env
+> При необходимости, изменить УРЛ к БД в ./Procfile (УРЛ указан явно для возможности задать useUnicode=true&characterEncoding=UTF-8)
 
-В результате:
-Query OK, 1000000 rows affected (17.98 sec)
+> Проверить корректность baseUrl в ./frontend/src/config/config.js
+$ heroku login
+$ git commit -am "make it better"
+$ git push heroku master
 ```
