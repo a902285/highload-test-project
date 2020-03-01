@@ -598,6 +598,173 @@
 
   </details>
   
+  <details>
+      <summary>Тестирование docker контейнера с MySQL (sysbench)</summary>
+      
+Процессор
+```
+# sysbench --test=cpu --cpu-max-prime=20000 run
+
+sysbench 1.0.19 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Prime numbers limit: 20000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:   436.90
+
+General statistics:
+    total time:                          10.0007s
+    total number of events:              4370
+
+Latency (ms):
+         min:                                    2.07
+         avg:                                    2.29
+         max:                                    4.56
+         95th percentile:                        2.57
+         sum:                                 9996.40
+
+Threads fairness:
+    events (avg/stddev):           4370.0000/0.00
+    execution time (avg/stddev):   9.9964/0.00
+```
+
+Диск
+```
+# sysbench --test=fileio --file-total-size=30G prepare
+# sysbench --test=fileio --file-total-size=30G --file-test-mode=rndrw --max-time=300 --max-requests=0 run
+# sysbench --test=fileio cleanup
+
+sysbench 1.0.19 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+128 files, 240MiB each
+30GiB total file size
+Block size 16KiB
+Number of IO requests: 0
+Read/Write ratio for combined random IO test: 1.50
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random r/w test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      1777.45
+    writes/s:                     1184.96
+    fsyncs/s:                     3792.19
+
+Throughput:
+    read, MiB/s:                  27.77
+    written, MiB/s:               18.52
+
+General statistics:
+    total time:                          300.0328s
+    total number of events:              2026492
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.15
+         max:                                  406.97
+         95th percentile:                        0.30
+         sum:                               298300.64
+
+Threads fairness:
+    events (avg/stddev):           2026492.0000/0.00
+    execution time (avg/stddev):   298.3006/0.00
+```
+
+БД
+```
+# sysbench oltp_read_write --table-size=1000000 --mysql-db=sn --mysql-user=root --mysql-password=passw0rd prepare
+# sysbench oltp_read_write --table-size=1000000 --mysql-db=sn --mysql-user=root --mysql-password=passw0rd --max-time=60 --max-requests=0 --num-threads=8 run
+
+sysbench 1.0.19 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Initializing worker threads...
+
+Threads started!
+
+SQL statistics:
+    queries performed:
+        read:                            283374
+        write:                           80964
+        other:                           40482
+        total:                           404820
+    transactions:                        20241  (337.22 per sec.)
+    queries:                             404820 (6744.33 per sec.)
+    ignored errors:                      0      (0.00 per sec.)
+    reconnects:                          0      (0.00 per sec.)
+
+General statistics:
+    total time:                          60.0219s
+    total number of events:              20241
+
+Latency (ms):
+         min:                                    9.63
+         avg:                                   23.71
+         max:                                  134.16
+         95th percentile:                       37.56
+         sum:                               480012.36
+
+Threads fairness:
+    events (avg/stddev):           2530.1250/15.31
+    execution time (avg/stddev):   60.0015/0.00
+```
+
+Утилизация ресурсов / htop
+```
+До нагрузки
+  1  [||                                                             1.3%]   Tasks: 5, 46 thr; 1 running
+  2  [||                                                             1.3%]   Load average: 0.00 0.02 0.03
+  Mem[|||||||||||||||||||||||||||||||||||||||||||||||||||||||  636M/1.94G]   Uptime: 23:23:28
+  Swp[|||||||||||||                                            193M/1024M]
+
+  PID USER      PRI  NI  VIRT   RES   SHR S CPU% MEM%   TIME+  Command
+    1 mysql      20   0 1820M  536M 18332 S  0.7 27.0  2:18.23 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  172 mysql      20   0 1820M  536M 18332 S  0.7 27.0  0:27.12 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+ 5365 root       20   0 22784  3264  2700 R  0.7  0.2  0:07.98 htop
+  179 mysql      20   0 1820M  536M 18332 S  0.7 27.0  0:07.72 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  176 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:03.53 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  192 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:03.27 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  175 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:03.75 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  173 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:03.47 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  174 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:03.48 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  177 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:04.87 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+  187 mysql      20   0 1820M  536M 18332 S  0.0 27.0  0:00.32 mysqld --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+
+
+Во время нагрузки
+  1  [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||98.6%]   Tasks: 5, 50 thr; 7 running
+  2  [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||98.6%]   Load average: 0.82 0.30 0.20
+  Mem[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||704M/1.94G]   Uptime: 23:46:04
+  Swp[|||||||||||||                                            192M/1024M]
+```
+
+  </details>
+  
+  
   **Web server Apache Tomcat**
   Заданы явно настройки:
   ```
