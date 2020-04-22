@@ -1589,7 +1589,4 @@ Max throughput = 4.99 rps
 
 ## Итоги:
 - Для полей first_name и last_name добавлен BTREE индекс для возможности поиска по префиксу.
-- throughput после добавления индексов оказался ниже (4.99), чем до добавления индексов (144.58) (??? не ясно почему)
-- при этом explain после добавления индексов выглядит лучше, стоимость запроса в 3 раза меньше
-    - Table scan on account  (cost=105703.03 rows=986902) (actual time=0.027..631.415 rows=1000001 loops=1)
-    - Index range scan on account using sort_union(account_first_name_idx,account_last_name_idx)  (cost=33809.67 rows=21490) (actual time=154.120..229.844 rows=13420 loops=1)
+- См выводы в ../task03
