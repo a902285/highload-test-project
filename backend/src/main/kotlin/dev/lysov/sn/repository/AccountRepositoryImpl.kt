@@ -1,6 +1,7 @@
 package dev.lysov.sn.repository
 
 import dev.lysov.sn.model.Account
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.stereotype.Repository
@@ -9,24 +10,27 @@ import java.sql.Statement
 
 @Repository
 class AccountRepositoryImpl(
-        val jdbcTemplate: JdbcTemplate
+        @Qualifier("masterJdbcTemplate")
+        val masterJdbcTemplate: JdbcTemplate,
+        @Qualifier("slaveJdbcTemplate")
+        val slaveJdbcTemplate: JdbcTemplate
 ) : AccountRepository {
 
     override fun findAll(limit: Int, offset: Int, name: String?) : List<Account> {
         val params = mutableListOf<Any>()
         val where = name?.let {
             params.addAll(listOf("$it%", "$it%"))
-            "where first_name like ? or last_name like ?"
+            "where first_name like ? and last_name like ?"
         } ?: ""
         params.addAll(listOf(limit, offset))
 
-        return jdbcTemplate.query("select * from account" +
+        return slaveJdbcTemplate.query("select * from account" +
                 " $where" +
                 " order by id limit ? offset ?", params.toTypedArray(), rowMapper())
     }
 
     override fun findOne(id: Long) =
-            jdbcTemplate.queryForObject("select * from account where id = ?", arrayOf(id), rowMapper())
+            slaveJdbcTemplate.queryForObject("select * from account where id = ?", arrayOf(id), rowMapper())
 
     override fun save(account: Account) = if (account.id == null) {
         create(account)
@@ -36,7 +40,7 @@ class AccountRepositoryImpl(
 
     private fun create(account: Account): Account {
         val keyHolder = GeneratedKeyHolder()
-        jdbcTemplate.update({ connection ->
+        masterJdbcTemplate.update({ connection ->
             val ps = connection.prepareStatement("insert into account (username, password, first_name, last_name, age, gender, city, description) " +
                     "values (?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)
             ps.setString(1, account.username)
@@ -54,7 +58,7 @@ class AccountRepositoryImpl(
     }
 
     private fun update(account: Account): Account {
-        jdbcTemplate.update { connection ->
+        masterJdbcTemplate.update { connection ->
             val ps = connection.prepareStatement("update account set first_name = ?, " +
                     "last_name = ?, age = ?, gender = ?, city = ?, description = ? where id = ?")
             ps.setString(1, account.firstName)
@@ -70,13 +74,13 @@ class AccountRepositoryImpl(
     }
 
     override fun delete(id: Long) {
-        jdbcTemplate.update("delete from account where id = ?") {
+        masterJdbcTemplate.update("delete from account where id = ?") {
             it.setLong(1, id)
         }
     }
 
     override fun findByUsername(username: String) =
-            jdbcTemplate.queryForObject("select * from account where username = ?", arrayOf(username), rowMapper())
+            masterJdbcTemplate.queryForObject("select * from account where username = ?", arrayOf(username), rowMapper())
 
     private fun rowMapper() = { rs: ResultSet, _: Int ->
         val account = Account(

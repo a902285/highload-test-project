@@ -26,6 +26,7 @@ dependencies {
     implementation("org.liquibase:liquibase-core")
     implementation("mysql:mysql-connector-java:8.0.18")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
+    implementation("com.zaxxer:HikariCP:3.4.3")
 
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")

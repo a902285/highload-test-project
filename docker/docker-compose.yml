@@ -2,13 +2,28 @@
 version: '3.1'
 
 services:
-
-  db:
-    image: mysql
+  mysql_master:
+    image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: passw0rd
-      MYSQL_DATABASE: sn
+    env_file:
+      - ./master/mysql_master.env
+    container_name: "mysql_master"
+    restart: "no"
     ports:
       - 3306:3306
+    volumes:
+      - ./master/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+
+  mysql_slave:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+    env_file:
+      - ./slave/mysql_slave.env
+    container_name: "mysql_slave"
+    restart: "no"
+    ports:
+      - 3307:3306
+    depends_on:
+      - mysql_master
+    volumes:
+      - ./slave/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf

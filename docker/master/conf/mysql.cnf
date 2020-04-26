@@ -1,0 +1,11 @@
+[mysqld]
+
+skip-host-cache
+skip-name-resolve
+
+server-id = 1
+log_bin = /var/lib/mysql/mysql-bin.log
+binlog_format = ROW
+binlog_do_db = sn
+
+max_connections = 200

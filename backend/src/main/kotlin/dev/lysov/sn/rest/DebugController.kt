@@ -8,10 +8,15 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/debug")
 class DebugController(
-        @Value("\${spring.datasource.url}")
-        private val datasourceUrl: String
+        @Value("\${spring.datasource.master.jdbc-url}")
+        private val masterDatasourceUrl: String,
+        @Value("\${spring.datasource.slave.jdbc-url}")
+        private val slaveDatasourceUrl: String
 ) {
 
-    @GetMapping("/datasource/url")
-    fun datasourceUrl() = datasourceUrl
+    @GetMapping("/datasource/master/url")
+    fun masterDatasourceUrl() = masterDatasourceUrl
+
+    @GetMapping("/datasource/slave/url")
+    fun slaveDatasourceUrl() = slaveDatasourceUrl
 }
