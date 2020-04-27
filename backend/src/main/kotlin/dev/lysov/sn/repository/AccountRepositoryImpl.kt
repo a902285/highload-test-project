@@ -16,7 +16,7 @@ class AccountRepositoryImpl(
         val params = mutableListOf<Any>()
         val where = name?.let {
             params.addAll(listOf("$it%", "$it%"))
-            "where first_name like ? or last_name like ?"
+            "where last_name like ? and first_name like ?"
         } ?: ""
         params.addAll(listOf(limit, offset))
 
