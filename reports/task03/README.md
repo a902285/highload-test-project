@@ -41,7 +41,7 @@ LOAD DATA INFILE '/var/tmp/insert-account.txt'
 Query OK, 1000000 rows affected (17.98 sec)
 ```
 
-## Отчет
+## Отчет (запрос с OR)
 
 Инструмент НТ: apache-jmeter-5.2.1
 
@@ -380,17 +380,175 @@ explain analyze select * from account where first_name like 'Владимир%' 
 
 ![tps_idx2_1000](result/tps_idx2_1000.jpg)
 
+## Отчет (запросы с AND)
+
+- Изменен подстановочный набор данных (см. файл names.csv)
+
+### Без индексов (запросы С AND)
+
+Анализ запроса:
+
+```sql
+
+explain format=json select * from account where last_name like 'Владимир%' and first_name like 'Владимир%';
+
+{
+  "query_block": {
+    "select_id": 1,
+    "cost_info": {
+      "query_cost": "104581.31"
+    },
+    "table": {
+      "table_name": "account",
+      "access_type": "ALL",
+      "rows_examined_per_scan": 989509,
+      "rows_produced_per_join": 12213,
+      "filtered": "1.23",
+      "cost_info": {
+        "read_cost": "103359.94",
+        "eval_cost": "1221.37",
+        "prefix_cost": "104581.31",
+        "data_read_per_join": "57M"
+      },
+      "used_columns": [
+        "id",
+        "username",
+        "password",
+        "first_name",
+        "last_name",
+        "age",
+        "gender",
+        "city",
+        "description"
+      ],
+      "attached_condition": "((`sn`.`account`.`last_name` like 'Владимир%') and (`sn`.`account`.`first_name` like 'Владимир%'))"
+    }
+  }
+}
+
+explain analyze select * from account where last_name like 'Владимир%' and first_name like 'Владимир%';
+
+-> Filter: ((`account`.last_name like 'Владимир%') and (`account`.first_name like 'Владимир%'))  (cost=104581.31 rows=12214) (actual time=16.535..875.020 rows=46 loops=1)
+    -> Table scan on account  (cost=104581.31 rows=989509) (actual time=2.844..776.384 rows=1000001 loops=1)
+
+
+```
+
+##### Target Rate (arrivals/sec): 1000
+
+Отчет: aggregate 
+
+|Label       |# Samples|Average|Median|90% Line|95% Line|99% Line|Min |Max   |Error %|Throughput|Received KB/sec|Sent KB/sec|
+|------------|---------|-------|------|--------|--------|--------|----|------|-------|----------|---------------|-----------|
+|HTTP Request|1535     |134432 |148540|205979  |212939  |220745  |5822|225030|22.541%|6.05630   |19.46          |1.69       |
+|TOTAL       |1535     |134432 |148540|205979  |212939  |220745  |5822|225030|22.541%|6.05630   |19.46          |1.69       |
+
+Отчет: Response Times Over Time
+
+![rps_and1000](result/rps_and1000.jpg)
+
+Отчет: Transactions per Second
+
+![tps_and1000](result/tps_and1000.jpg)
+
+
+### Составной индекс на last_name и first_name (запросы С AND)
+
+```sql
+create index account_name_idx on account(last_name, first_name);
+```
+
+Анализ запроса:
+
+```sql
+
+explain format=json select * from account where last_name like 'Владимир%' and first_name like 'Владимир%';
+
+{
+  "query_block": {
+    "select_id": 1,
+    "cost_info": {
+      "query_cost": "7037.30"
+    },
+    "table": {
+      "table_name": "account",
+      "access_type": "range",
+      "possible_keys": [
+        "account_name_idx"
+      ],
+      "key": "account_name_idx",
+      "used_key_parts": [
+        "last_name"
+      ],
+      "key_length": "406",
+      "rows_examined_per_scan": 7670,
+      "rows_produced_per_join": 852,
+      "filtered": "11.11",
+      "index_condition": "((`sn`.`account`.`last_name` like 'Владимир%') and (`sn`.`account`.`first_name` like 'Владимир%'))",
+      "cost_info": {
+        "read_cost": "6952.09",
+        "eval_cost": "85.21",
+        "prefix_cost": "7037.30",
+        "data_read_per_join": "3M"
+      },
+      "used_columns": [
+        "id",
+        "username",
+        "password",
+        "first_name",
+        "last_name",
+        "age",
+        "gender",
+        "city",
+        "description"
+      ]
+    }
+  }
+}
+
+explain analyze select * from account where last_name like 'Владимир%' and first_name like 'Владимир%';
+
+-> Index range scan on account using account_name_idx, with index condition: ((`account`.last_name like 'Владимир%') and (`account`.first_name like 'Владимир%'))  (cost=7069.67 rows=7670) (actual time=9.870..13.812 rows=46 loops=1)
+
+```
+
+##### Target Rate (arrivals/sec): 1000
+
+Отчет: aggregate 
+
+|Label       |# Samples|Average|Median|90% Line|95% Line|99% Line|Min |Max   |Error %|Throughput|Received KB/sec|Sent KB/sec|
+|------------|---------|-------|------|--------|--------|--------|----|------|-------|----------|---------------|-----------|
+|HTTP Request|23529    |5161   |296   |18050   |24709   |31084   |2   |50815 |0.000% |180.87961 |613.85         |65.27      |
+|TOTAL       |23529    |5161   |296   |18050   |24709   |31084   |2   |50815 |0.000% |180.87961 |613.85         |65.27      |
+
+Отчет: Response Times Over Time
+
+![rps_idx2_and_1000](result/rps_idx2_and_1000.jpg)
+
+Отчет: Transactions per Second
+
+![tps_idx2_and_1000](result/tps_idx2_and_1000.jpg)
+
 
 ## Итого:
 
 Наилучшие показатели достигнуты при наличии составного индекса.
 
-Так при нагрзуке в 1000 req/sec получаем следующие показатели:
+Так при нагрзуке в 1000 req/sec получаем следующие показатели (при запросах с OR):
 - Пропускная способность: 336.20662 req / sec
 - Среднее время обработки запроса: 2,884 sec
 - Всего обработано запросов за 2 мин: 41266
 - Количество ошибок: 0
 
+Для другого набора тестовых данных, при нагрзуке в 1000 req/sec получаем следующие показатели (при запросах с AND):
+- Пропускная способность (с индексом): 180.87961 req / sec    
+- Пропускная способность (без индекса): 6.05630 req / sec
+
+- Среднее время обработки запроса (с индексом): 5,161 sec
+- Среднее время обработки запроса (без индекса): 134,432 sec
+
+- Всего обработано запросов за 2 мин (с индексом): 23529
+- Всего обработано запросов за 2 мин (без индекса): 1535
 
 Для запроса first_name like 'Текст%' or last_name like 'Текст%' 
 может быть указана любая последовательность колонок в индексе.
@@ -406,3 +564,11 @@ explain analyze select * from account where first_name like 'Владимир%' 
 ```sql
 create index account_name_idx on account(last_name, first_name);
 ```
+
+График latency / число connection'ов
+
+![latency](result/latency.jpg)
+
+График throughput / число connection'ов
+
+![throughput](result/throughput.jpg)
