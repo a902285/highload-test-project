@@ -566,3 +566,11 @@ explain analyze select * from account where last_name like 'Владимир%' a
 ```sql
 create index account_name_idx on account(last_name, first_name);
 ```
+
+График latency / число connection'ов
+
+![latency](result/latency.jpg)
+
+График throughput / число connection'ов
+
+![throughput](result/throughput.jpg)

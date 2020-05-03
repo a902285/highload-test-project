@@ -180,13 +180,13 @@
       <com.blazemeter.jmeter.threads.arrivals.ArrivalsThreadGroup guiclass="com.blazemeter.jmeter.threads.arrivals.ArrivalsThreadGroupGui" testclass="com.blazemeter.jmeter.threads.arrivals.ArrivalsThreadGroup" testname="bzm - Arrivals Thread Group" enabled="true">
         <elementProp name="ThreadGroup.main_controller" elementType="com.blazemeter.jmeter.control.VirtualUserController"/>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <stringProp name="TargetLevel">100</stringProp>
+        <stringProp name="TargetLevel">400</stringProp>
         <stringProp name="RampUp">0</stringProp>
         <stringProp name="Steps">1</stringProp>
-        <stringProp name="Hold">120</stringProp>
+        <stringProp name="Hold">30</stringProp>
         <stringProp name="LogFilename"></stringProp>
         <stringProp name="Iterations"></stringProp>
-        <stringProp name="ConcurrencyLimit">100</stringProp>
+        <stringProp name="ConcurrencyLimit">1000</stringProp>
         <stringProp name="Unit">S</stringProp>
       </com.blazemeter.jmeter.threads.arrivals.ArrivalsThreadGroup>
       <hashTree>
@@ -204,7 +204,7 @@
           <collectionProp name="HeaderManager.headers">
             <elementProp name="" elementType="Header">
               <stringProp name="Header.name">Authorization</stringProp>
-              <stringProp name="Header.value">Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTg4MDIwNjU3LCJleHAiOjE1ODgwMjQyNTd9.QT4sL9yg-Oea-X4sYfKNjYm0z64910Y5Vzt7DTNp3yWnl-7xi18e8O053jSYAKRJ15z1Zr3YYQIOu-1PuT7okg</stringProp>
+              <stringProp name="Header.value">Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTg4NTM4NDM5LCJleHAiOjE1ODg1NDIwMzl9.-2-9J4_Mkh2Bo3K81-mC_1OuIXAzvRjzuSNj-AOPpvq-8CsocyvjRpZNTdj8ZWLAgp9GxwfI7IOnZNvGvxE83g</stringProp>
             </elementProp>
           </collectionProp>
         </HeaderManager>
