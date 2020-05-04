@@ -131,5 +131,36 @@ select * from account where first_name like ? and last_name like ?;
 select * from account where id = ?;
 ``` 
 
-# Результаты нагрузочного тестирования
+## Тестирование
 
+Инструмент НТ: apache-jmeter-5.2.1
+
+Скрипт: ../task03/sn.jmx
+-  Arrivals Thread Group
+    - Target Rate (arrivals/sec): 200
+    - Ramp Up Time (sec): 0
+    - Ramp Up Step Count: 1
+    - Hold Target Rate Time (sec): 120
+    - Concurrency Limit: 100
+    - Параметризированный HTTP запрос по CSV файлу
+
+Инструмент мониторинга серверов: Prometheus / Grafana.
+
+Ссылки: 
+- https://github.com/vegasbrianc/prometheus
+- https://grafana.com/grafana/dashboards/893. 
+- https://github.com/stefanprodan/dockprom
+- https://habr.com/ru/company/southbridge/blog/314212/.
+
+### До репликации
+
+![master_01](result/master_01.jpg)
+![master_02](result/master_02.jpg)
+
+### После репликации
+
+![slave_01](result/slave_01.jpg)
+![slave_02](result/slave_02.jpg)
+
+
+Как видно по результату мониторинга, нагрузка перешла на слейв.
