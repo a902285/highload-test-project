@@ -530,6 +530,98 @@ explain analyze select * from account where last_name like 'Владимир%' a
 ![tps_idx2_and_1000](result/tps_idx2_and_1000.jpg)
 
 
+### Отдельные индексы на last_name и first_name (запросы С AND)
+
+```sql
+create index account_first_name_idx on account(first_name);
+create index account_last_name_idx on account(last_name);
+```
+
+Анализ запроса:
+
+```sql
+
+explain format=json select * from account where last_name like 'Владимир%' and first_name like 'Владимир%';
+
+{
+  "query_block": {
+    "select_id": 1,
+    "cost_info": {
+      "query_cost": "3951.82"
+    },
+    "table": {
+      "table_name": "account",
+      "access_type": "range",
+      "possible_keys": [
+        "account_first_name_idx",
+        "account_last_name_idx"
+      ],
+      "key": "account_last_name_idx",
+      "used_key_parts": [
+        "last_name"
+      ],
+      "key_length": "203",
+      "rows_examined_per_scan": 4053,
+      "rows_produced_per_join": 76,
+      "filtered": "1.88",
+      "index_condition": "(`sn`.`account`.`last_name` like 'Владимир%')",
+      "using_MRR": true,
+      "cost_info": {
+        "read_cost": "3944.18",
+        "eval_cost": "7.64",
+        "prefix_cost": "3951.82",
+        "data_read_per_join": "367K"
+      },
+      "used_columns": [
+        "id",
+        "username",
+        "password",
+        "first_name",
+        "last_name",
+        "age",
+        "gender",
+        "city",
+        "description"
+      ],
+      "attached_condition": "(`sn`.`account`.`first_name` like 'Владимир%')"
+    }
+  }
+}
+
+explain analyze select * from account where last_name like 'Владимир%' and first_name like 'Владимир%';
+
+-> Filter: (`account`.first_name like 'Владимир%')  (cost=3951.82 rows=76) (actual time=19.077..389.628 rows=45 loops=1)
+    -> Index range scan on account using account_last_name_idx, with index condition: (`account`.last_name like 'Владимир%')  (cost=3951.82 rows=4053) (actual time=11.418..387.972 rows=4053 loops=1)
+```
+
+### Сравнительный отчет
+
+#### latency
+
+| Число connection'ов | без индекса | с составным индексом (last_name, first_name) | с отдельными индексами на last_name и first_name |
+|---------------------|-------------|----------------------------------------------|--------------------------------------------------|
+| 1                   | 644         | 19                                           | 33                                               |
+| 10                  | 1512        | 50                                           | 79                                               |
+| 100                 | 13344       | 404                                          | 850                                              |
+| 1000                | 18428       | 3244                                         | 6260                                             |
+
+График latency / число connection'ов
+
+![latency](result/latency.jpg)
+
+#### throughput
+
+| Число connection'ов | без индекса | с составным индексом (last_name, first_name) | с отдельными индексами на last_name и first_name |
+|---------------------|-------------|----------------------------------------------|--------------------------------------------------|
+| 1                   | 1,4         | 62,2                                         | 36,6                                             |
+| 10                  | 5,7         | 192,6                                        | 124                                              |
+| 100                 | 5,4         | 203,4                                        | 110,4                                            |
+| 1000                | 5,3         | 201,8                                        | 108,3                                            |
+
+График throughput / число connection'ов
+
+![throughput](result/throughput.jpg)
+
 ## Итого:
 
 Наилучшие показатели достигнуты при наличии составного индекса.
@@ -550,7 +642,7 @@ explain analyze select * from account where last_name like 'Владимир%' a
 - Всего обработано запросов за 2 мин (с индексом): 23529
 - Всего обработано запросов за 2 мин (без индекса): 1535
 
-Для запроса first_name like 'Текст%' or last_name like 'Текст%' 
+Для запроса first_name like 'Текст%' and last_name like 'Текст%' 
 может быть указана любая последовательность колонок в индексе.
 
 Учитывая селективность полей в БД:
@@ -565,10 +657,3 @@ explain analyze select * from account where last_name like 'Владимир%' a
 create index account_name_idx on account(last_name, first_name);
 ```
 
-График latency / число connection'ов
-
-![latency](result/latency.jpg)
-
-График throughput / число connection'ов
-
-![throughput](result/throughput.jpg)
