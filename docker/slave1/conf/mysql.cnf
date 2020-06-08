@@ -7,5 +7,8 @@ server-id=2
 relay-log = /var/lib/mysql/mysql-relay-bin.log
 log_bin = /var/lib/mysql/mysql-bin.log
 binlog_do_db = sn
+binlog_format = ROW
+gtid-mode = on
+enforce-gtid-consistency = ON
 
 max_connections = 200

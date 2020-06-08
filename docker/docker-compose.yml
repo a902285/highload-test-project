@@ -14,16 +14,30 @@ services:
     volumes:
       - ./master/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
 
-  mysql_slave:
+  mysql_slave_1:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
     env_file:
-      - ./slave/mysql_slave.env
-    container_name: "mysql_slave"
+      - ./slave1/mysql_slave.env
+    container_name: "mysql_slave_1"
     restart: "no"
     ports:
       - 3307:3306
     depends_on:
       - mysql_master
     volumes:
-      - ./slave/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./slave1/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+
+  mysql_slave_2:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --secure-file-priv=/var/tmp
+    env_file:
+      - ./slave2/mysql_slave.env
+    container_name: "mysql_slave_2"
+    restart: "no"
+    ports:
+      - 3308:3306
+    depends_on:
+      - mysql_slave_1
+    volumes:
+      - ./slave2/conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
